@@ -99,7 +99,7 @@ public class TokenService {
     public ResponseEntity<?> adminLoginUser(String email, String password, UserService userService) {
         try {
             User user = userService.getUserByEmail(email);
-            if (user.getRole() != 1) { 
+            if (user.getRole() != 1) {
                 ApiError error = new ApiError("Validation", "Role", "Admin role required");
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
             }

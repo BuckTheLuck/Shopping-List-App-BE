@@ -1,5 +1,6 @@
 package com.shoppinglist.springboot.user;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
 import java.util.Objects;
@@ -91,7 +92,7 @@ public class User {
     public void setRole(Integer role) {
         this.role = role;
     }
-
+    @JsonIgnore
     public boolean isBlocked() {
         return role == 2;
     }
