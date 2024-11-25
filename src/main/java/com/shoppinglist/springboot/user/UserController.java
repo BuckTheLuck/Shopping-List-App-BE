@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("api/users")
 public class UserController {
@@ -22,6 +24,12 @@ public class UserController {
     @GetMapping("{uuid}")
     public ResponseEntity<?> getUser(@PathVariable("uuid") String id, HttpServletRequest httpRequest) {
         return userService.getUserDetails(id, userService, httpRequest);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<User>> getAllUsers(HttpServletRequest request) {
+        List<User> users = userService.getAllUsers(request);
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("email/{email}")
@@ -44,4 +52,18 @@ public class UserController {
         return userService.updateUser(uuid, request, httpRequest);
     }
 
+    @PutMapping("{uuid}/block")
+    public ResponseEntity<?> blockUser(@PathVariable String uuid, HttpServletRequest request) {
+        return userService.blockUser(uuid, request);
+    }
+
+    @DeleteMapping("{uuid}")
+    public ResponseEntity<?> deleteUser(@PathVariable String uuid, HttpServletRequest request) {
+        return userService.deleteUser(uuid, request);
+    }
+
+    @PutMapping("{uuid}/unblock")
+    public ResponseEntity<?> unblockUser(@PathVariable String uuid, HttpServletRequest request) {
+        return userService.unblockUser(uuid, request);
+    }
 }

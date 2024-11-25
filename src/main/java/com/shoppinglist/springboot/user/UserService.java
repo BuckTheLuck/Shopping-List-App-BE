@@ -41,7 +41,8 @@ public class UserService {
         this.tokenService = tokenService;
     }
 
-    public List<User> getAllUsers() {
+    public List<User> getAllUsers(HttpServletRequest request) {
+        checkAdminAccess(request);
         return userDAO.getAllUsers();
     }
 
@@ -58,6 +59,8 @@ public class UserService {
                         new ResourceNotFoundException("Customer with email [%s] not found".formatted(email))
                 );
     }
+
+
 
     private ResponseEntity<?> checkEmailExists(String email) {
         if (userDAO.existsUserWithEmail(email)) {
@@ -268,6 +271,76 @@ public class UserService {
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(userDTO);
+    }
+    public ResponseEntity<?> blockUser(String userId, HttpServletRequest request) {
+        checkAdminAccess(request);
+
+        String adminId = getUserIDFromAccessToken(request);
+        if (userId.equals(adminId)) {
+            ApiError error = new ApiError("Access", null, "Admins cannot block themselves");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() == 1) {
+            return ResponseEntity.ok("Can't block admins.");
+        }
+        logoutAllForUser(userId);
+
+        user.setRole(2);
+        userRepository.save(user);
+        return ResponseEntity.ok("User blocked successfully.");
+    }
+
+    public ResponseEntity<?> unblockUser(String userId, HttpServletRequest request) {
+        checkAdminAccess(request);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getRole() == 1) {
+            return ResponseEntity.ok("Can't unblock admins.");
+        }
+
+        user.setRole(0);
+        userRepository.save(user);
+        return ResponseEntity.ok("User unblocked successfully.");
+    }
+
+    public ResponseEntity<?> deleteUser(String userId, HttpServletRequest request) {
+        checkAdminAccess(request);
+
+        String adminId = getUserIDFromAccessToken(request);
+        if (userId.equals(adminId)) {
+            ApiError error = new ApiError("Access", null, "Admins cannot delete themselves");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+        }
+
+        logoutAllForUser(userId);
+
+        userRepository.deleteById(userId);
+        return ResponseEntity.ok("User deleted successfully.");
+    }
+
+    private void logoutAllForUser(String userId) {
+        try {
+            tokenService.deleteAllTokens(userId);
+        } catch (Exception e) {
+            logger.error("Error while logging out user with ID: {}", userId, e);
+        }
+    }
+
+    private void checkAdminAccess(HttpServletRequest request) {
+        String adminId = getUserIDFromAccessToken(request);
+
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("Admin user not found"));
+
+        if (admin.getRole() != 1) {
+            throw new SecurityException("Access denied. Admin privileges required.");
+        }
     }
 
 }

@@ -69,6 +69,44 @@ public class TokenService {
     public ResponseEntity<?> loginUser(String email, String password, UserService userService) {
         try {
             User user = userService.getUserByEmail(email);
+            if(user.isBlocked())
+            {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User blocked by admin");
+            }
+            if (BCrypt.checkpw(password, user.getPassword())) {
+                String accessToken = generateToken(EXPIRATION_TIME_ACCESS, user.getId());
+                String refreshToken = generateToken(EXPIRATION_TIME_REFRESH, user.getId());
+                addToken(user.getId(), refreshToken);
+                Cookie cookie = new Cookie("refreshToken", refreshToken);
+                cookie.setHttpOnly(true);
+                cookie.setPath("/api/auth");
+                String cookieValue = String.format("%s=%s; HttpOnly; Path=/", cookie.getName(), cookie.getValue());
+                return ResponseEntity.ok()
+                        .header("Set-Cookie", cookieValue)
+                        .body(accessToken);
+            } else {
+                logger.warn("Invalid password");
+                ApiError error = new ApiError("Validation", "Password", "Invalid password");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+            }
+        } catch (ResourceNotFoundException ex) {
+            logger.warn("Invalid e-mail");
+            ApiError error = new ApiError("Validation", "E-mail", "Invalid e-mail");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+
+    public ResponseEntity<?> adminLoginUser(String email, String password, UserService userService) {
+        try {
+            User user = userService.getUserByEmail(email);
+            if (user.getRole() != 1) { 
+                ApiError error = new ApiError("Validation", "Role", "Admin role required");
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
+            }
+            if(user.isBlocked())
+            {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("User blocked by admin");
+            }
             if (BCrypt.checkpw(password, user.getPassword())) {
                 String accessToken = generateToken(EXPIRATION_TIME_ACCESS, user.getId());
                 String refreshToken = generateToken(EXPIRATION_TIME_REFRESH, user.getId());

@@ -29,6 +29,9 @@ public class User {
     @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "role", nullable = false)
+    private Integer role;
+
     public User() {
     }
 
@@ -37,7 +40,9 @@ public class User {
         this.lastname = lastname;
         this.email = email;
         this.password = password;
+        this.role = 0;
     }
+
 
     public String getId() {
         return id;
@@ -77,6 +82,18 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public Integer getRole() {
+        return role;
+    }
+
+    public void setRole(Integer role) {
+        this.role = role;
+    }
+
+    public boolean isBlocked() {
+        return role == 2;
     }
 
     @Override

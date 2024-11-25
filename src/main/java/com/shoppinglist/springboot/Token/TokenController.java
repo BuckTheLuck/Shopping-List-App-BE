@@ -47,6 +47,26 @@ public class TokenController {
         }
     }
 
+    @PostMapping("admin/login")
+    public ResponseEntity<?> adminLogin(@RequestBody LoginRequest requestBody) {
+        if ((requestBody.email() == null && requestBody.password() == null) || (requestBody.email() == "" && requestBody.password() == "")) {
+            logger.warn("Missing e-mail and password");
+            ApiError error = new ApiError("Validation", "Both", "Missing data");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        } else if (requestBody.email() == null || requestBody.email() == "") {
+            logger.warn("Missing e-mail");
+            ApiError error = new ApiError("Validation", "E-mail", "Missing e-mail");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        } else if (requestBody.password() == null || requestBody.password() == "") {
+            logger.warn("Missing password");
+            ApiError error = new ApiError("Validation", "Password", "Missing password");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        } else {
+            return tokenService.adminLoginUser(requestBody.email(), requestBody.password(), userService);
+        }
+    }
+
+
     @GetMapping("refresh")
     public ResponseEntity<?> refresh(@CookieValue(value = "refreshToken", defaultValue = "") String refreshToken) {
         if (refreshToken == null) {
