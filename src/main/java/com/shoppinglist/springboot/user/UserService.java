@@ -276,6 +276,7 @@ public class UserService {
         checkAdminAccess(request);
 
         String adminId = getUserIDFromAccessToken(request);
+
         if (userId.equals(adminId)) {
             ApiError error = new ApiError("Access", null, "Admins cannot block themselves");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error);
@@ -285,13 +286,15 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         if (user.getRole() == 1) {
-            return ResponseEntity.ok("Can't block admins.");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Can't block admins.");
         }
+
         logoutAllForUser(userId);
 
-        user.setRole(2);
+        user.setRole(2); // Block the user
         userRepository.save(user);
-        return ResponseEntity.ok("User blocked successfully.");
+
+        return ResponseEntity.ok("User blocked successfully."); // Ensure correct status and message
     }
 
     public ResponseEntity<?> unblockUser(String userId, HttpServletRequest request) {

@@ -1,10 +1,14 @@
 package com.shoppinglist.springboot.user;
 
+import com.shoppinglist.springboot.Token.TokenController;
 import com.shoppinglist.springboot.Token.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.List;
 
@@ -13,6 +17,7 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final TokenService tokenService;
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
     @Autowired
     UserRepository userRepository;
 
