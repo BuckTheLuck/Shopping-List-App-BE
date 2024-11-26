@@ -51,4 +51,4 @@ jobs:
           app-name: 'Shoppinglist'
           slot-name: 'Production'
           package: '*.jar'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_0CD4CF6ED40C4524AFCCAB391D923A7A }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_6C9F3DA36AE948F8A4CF07693029B359 }}
